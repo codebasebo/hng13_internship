@@ -28,7 +28,7 @@ app.get("/me", async (req, res) => {
   res.status(200).json({
     status: "success",
     user: {
-      email: "ucheroyal20212gmail.com", 
+      email: "ucheroyal2021@gmail.com", 
       name: "Uche Royal",          
       stack: "Node.js/Express",
     },
