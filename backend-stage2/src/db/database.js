@@ -1,12 +1,19 @@
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync, mkdirSync } from 'fs';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// Ensure data directory exists
+const dataDir = join(__dirname, '../../data');
+if (!existsSync(dataDir)) {
+  mkdirSync(dataDir, { recursive: true });
+}
+
 // Database file path
-const file = join(__dirname, '../../data/db.json');
+const file = join(dataDir, 'db.json');
 const adapter = new JSONFile(file);
 const db = new Low(adapter, {});
 
