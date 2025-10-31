@@ -10,6 +10,15 @@ import {
 
 const router = express.Router();
 
+// Health check endpoint
+router.get("/", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    message: "Country Currency & Exchange API",
+    version: "1.0.0"
+  });
+});
+
 router.post("/countries/refresh", refreshCountries);
 router.get("/countries/image", getSummaryImage);
 router.get("/countries", getCountries);
