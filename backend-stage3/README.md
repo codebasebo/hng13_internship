@@ -400,6 +400,75 @@ The agent includes comprehensive error handling:
 - Detailed error logging
 - Graceful fallbacks
 
+---
+
+## Deployment
+
+### Vercel (Recommended)
+
+1. **Connect Repository**
+   - Go to https://vercel.com
+   - Import your GitHub repository
+   - Select `backend-stage3` folder
+
+2. **Configure Environment Variables**
+   ```
+   GROQ_API_KEY=your_groq_api_key
+   GROQ_MODEL=llama-3.1-8b-instant
+   PORT=4000
+   NODE_ENV=production
+   ```
+
+3. **Deploy**
+   ```bash
+   vercel --prod
+   ```
+
+4. **Update workflow.json**
+   Replace URL with your Vercel deployment URL:
+   ```json
+   {
+     "nodes": [{
+       "url": "https://your-app.vercel.app/a2a/agent/telex-codebuddy"
+     }]
+   }
+   ```
+
+### Alternative: Railway or Render
+
+**Railway:**
+```bash
+npm install -g @railway/cli
+railway login
+railway init
+railway up
+```
+
+**Render:**
+- Connect GitHub repo
+- Build: `npm install && npm run build`
+- Start: `npm start`
+- Add environment variables
+
+### Post-Deployment
+
+1. **Test Endpoint:**
+   ```bash
+   curl https://your-app.vercel.app/a2a/agent/telex-codebuddy \
+     -H "Content-Type: application/json" \
+     -d '{"id":"test","text":"explain: function add(a,b){return a+b;}"}'
+   ```
+
+2. **Import to Telex:**
+   - Upload `workflow.json` to Telex.im
+   - Test your agent by sending messages
+
+3. **Monitor Logs:**
+   - Vercel: Dashboard → Function Logs
+   - Telex: `https://api.telex.im/agent-logs/{channel-id}.txt`
+
+---
+
 ## Future Enhancements
 
 - [ ] LLM-powered code analysis with OpenAI
