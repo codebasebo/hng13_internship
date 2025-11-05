@@ -1,0 +1,26 @@
+{
+  "name": "telex-codebuddy",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node ./dist/server.js",
+    "dev": "tsx src/server.ts",
+    "dev:old": "node --loader ts-node/esm src/server.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@mastra/core": "^0.23.3",
+    "axios": "^1.5.0",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "groq-sdk": "^0.34.0",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.5.0"
+  }
+}

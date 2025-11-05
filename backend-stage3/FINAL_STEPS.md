@@ -55,20 +55,39 @@ https://github.com/codebasebo/hng13_internship/blob/main/backend-stage3/BLOG_POS
 **Tweet Template** (Copy & Customize):
 
 ```
-🤖 Just shipped TelexCodeBuddy - an AI code assistant on @teleximapp! 
+🚀 Built TelexCodeBuddy - an AI code assistant that lives in @teleximapp!
 
-Built with @mastra framework using Node.js and TypeScript. Features:
-✅ Code reviews
-✅ Explanations  
-✅ Refactoring suggestions
-✅ Code snippets
+Why on Telex? Developers can get instant code reviews, explanations & fixes without leaving their chat. Real-time collaboration meets AI-powered coding help.
 
-Live: https://backend-stage3-8ua89v1lu-ucheroyal2021-2830s-projects.vercel.app
+Powered by @mastra + TypeScript + Groq AI
+✅ Intelligent code analysis
+✅ Multi-language support
+✅ Natural conversation interface
+
+Live: https://backend-stage3.vercel.app
 Code: https://github.com/codebasebo/hng13_internship/tree/main/backend-stage3
-Blog: [YOUR_BLOG_POST_URL]
 
-#HNG13 #AI #TypeScript #Mastra
+#HNG13 #AI #CodeReview #DeveloperTools
 @hnginternship
+```
+
+**Alternative Tweet (More Technical):**
+
+```
+⚡ Just deployed an AI agent to @teleximapp using @mastra's A2A protocol!
+
+TelexCodeBuddy provides:
+• Real-time code reviews
+• Instant explanations
+• Refactoring suggestions
+• Smart debugging help
+
+Built with Node.js + TypeScript + Groq LLM
+Try it: https://backend-stage3.vercel.app
+
+Why Telex? Seamless integration where devs already collaborate. No context switching, just ask and get AI-powered help instantly.
+
+#HNG13 @hnginternship #AI #TypeScript
 ```
 
 **Action:**
@@ -77,6 +96,69 @@ Blog: [YOUR_BLOG_POST_URL]
 3. Add your blog post URL
 4. Post the tweet
 5. Copy the tweet URL for submission
+
+---
+
+## 🎯 Why CodeBuddy on Telex.im?
+
+### The Problem CodeBuddy Solves:
+
+**Traditional Developer Workflow:**
+1. Writing code in IDE
+2. Need help → Open browser
+3. Search Stack Overflow/ChatGPT
+4. Copy code back and forth
+5. Context switching kills productivity
+
+**With CodeBuddy on Telex:**
+1. Writing code in IDE
+2. Need help → Ask in Telex chat (where your team already is)
+3. Get instant AI-powered analysis
+4. Continue working - no context switch!
+
+### Key Benefits:
+
+#### 🚀 **Seamless Integration**
+- Developers already use Telex for team communication
+- No need to switch between multiple tools
+- AI assistance where conversations happen
+
+#### ⚡ **Real-Time Collaboration**
+- Share code with teammates in chat
+- Get AI review + team feedback simultaneously
+- Learn from both AI and peers
+
+#### 🤖 **Intelligent & Contextual**
+- Intent-based responses (explain, review, debug, optimize)
+- Understands multiple programming languages
+- Provides actionable, structured feedback
+
+#### 🔒 **Private & Secure**
+- Code stays within your Telex workspace
+- No third-party platforms needed
+- Team-controlled environment
+
+#### 📊 **Team Learning**
+- Junior devs get instant mentoring
+- Code reviews become teaching moments
+- Build team knowledge base in chat history
+
+### Use Cases:
+
+1. **Code Reviews in Chat**
+   - Paste code → Get instant review → Discuss with team
+   
+2. **Onboarding New Developers**
+   - New dev asks questions → AI explains → Senior dev supplements
+   
+3. **Quick Debugging**
+   - Bug in production → Share snippet → Get immediate suggestions
+   
+4. **Learning New Languages**
+   - Trying Python? Ask CodeBuddy for explanations
+   
+5. **Pair Programming Support**
+   - Stuck on logic → Ask AI → Keep momentum going
 
 ---
 
@@ -123,7 +205,11 @@ TelexCodeBuddy - AI Code Assistant Agent
 
 **Description:**
 ```
-An intelligent AI-powered code assistant built with Mastra and TypeScript. Integrates with Telex.im via A2A protocol to provide real-time code reviews, explanations, refactoring suggestions, and code snippets. Supports multiple programming languages and features intelligent intent classification.
+TelexCodeBuddy brings AI-powered code assistance directly into Telex.im, eliminating context switching for developers. Built with Mastra and TypeScript, it provides real-time code reviews, explanations, debugging help, and refactoring suggestions through natural conversation.
+
+Why Telex? Developers can get instant AI help where they already collaborate with their team - no need to switch to external tools. It combines the power of AI analysis with seamless team communication, making code reviews and learning happen in the flow of work.
+
+Tech: Node.js, Express, TypeScript, Mastra Framework, Groq AI, A2A Protocol
 ```
 
 **Live Demo URL:**
@@ -216,12 +302,12 @@ Keep these handy for the `/submit` form:
 | Field | Value |
 |-------|-------|
 | **Project Name** | TelexCodeBuddy - AI Code Assistant Agent |
-| **Live URL** | https://backend-stage3-8ua89v1lu-ucheroyal2021-2830s-projects.vercel.app/a2a/agent/telex-codebuddy |
+| **Live URL** | https://backend-stage3.vercel.app/a2a/agent/telex-codebuddy |
 | **GitHub** | https://github.com/codebasebo/hng13_internship/tree/main/backend-stage3 |
 | **README** | https://github.com/codebasebo/hng13_internship/blob/main/backend-stage3/README.md |
 | **Blog** | [Your published blog URL] |
 | **Tweet** | [Your tweet URL] |
-| **Tech Stack** | Node.js, Express, TypeScript, Mastra, Groq API, Telex A2A, Vercel |
+| **Tech Stack** | Node.js, Express, TypeScript, Mastra, Groq AI, Telex A2A, Vercel |
 
 ---
 
