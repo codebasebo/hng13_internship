@@ -1,3 +1,10 @@
 {
-  "/home/nid5iljx/hng13_internship/backend-stage3/.mastra/.build/typescript.mjs": {}
+  "/home/nid5iljx/hng13_internship/backend-stage3/.mastra/.build/typescript.mjs": {},
+  "/home/nid5iljx/hng13_internship/backend-stage3/.mastra/.build/@mastra-loggers.mjs": {
+    "pino": "/home/nid5iljx/hng13_internship/backend-stage3/node_modules/@mastra/loggers/dist/index.js",
+    "pino-pretty": "/home/nid5iljx/hng13_internship/backend-stage3/node_modules/@mastra/loggers/dist/index.js"
+  },
+  "/home/nid5iljx/hng13_internship/backend-stage3/.mastra/.build/@mastra-libsql.mjs": {
+    "@libsql/client": "/home/nid5iljx/hng13_internship/backend-stage3/node_modules/@mastra/libsql/dist/index.js"
+  }
 }

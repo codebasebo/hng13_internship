@@ -17,6 +17,9 @@ import 'module';
 import 'os';
 import './tools.mjs';
 import 'events';
+import 'pino';
+import 'pino-pretty';
+import '@libsql/client';
 
 function convertToGroqChatMessages(prompt) {
   const messages = [];

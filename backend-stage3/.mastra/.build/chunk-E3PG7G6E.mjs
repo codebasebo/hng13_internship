@@ -2,7 +2,7 @@ import { c as convertToCoreMessages, b as convertUint8ArrayToBase64$1, f as fetc
 import { M as MastraError } from './error.mjs';
 import { randomUUID } from 'crypto';
 import { s as safeParseAsync, u as union, k as string, l as _instanceof, m as custom, n as lazy, o as _null, p as number, q as boolean, r as record, t as array, v as object$1, w as literal, x as unknown, y as discriminatedUnion, z as looseObject, A as optional, B as base64 } from './schemas.mjs';
-import { t as toJSONSchema } from './coerce.mjs';
+import { t as toJSONSchema } from './to-json-schema.mjs';
 import { Z as ZodFirstPartyTypeKind, u as unionType, s as stringType, i as instanceOfType, c as custom$1 } from './v3.mjs';
 
 // src/errors/ai-sdk-error.ts

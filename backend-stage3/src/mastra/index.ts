@@ -1,26 +1,31 @@
 import { Mastra } from "@mastra/core/mastra";
-import { Agent } from "@mastra/core";
-import { config } from "dotenv";
-import { codeBuddyWorkflow } from "../workflows/codebuddy.workflow.js";
-
-config();
-
-const DEFAULT_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
-
-export const codeBuddyAgent = new Agent({
-  name: "codeBuddyAgent",
-  instructions: "You are CodeBuddy, an expert AI code assistant. Help with code reviews, explanations, refactoring, and snippets.",
-  model: {
-    provider: "GROQ",
-    name: DEFAULT_MODEL,
-    toolChoice: "auto",
-  } as any,
-});
+import { PinoLogger } from "@mastra/loggers";
+import { LibSQLStore } from "@mastra/libsql";
+import { a2aAgentRoute } from "../routes/a2aAgentRoute";
+import { codeBuddyAgent } from "../agent/handler";
+import { codeBuddyWorkflow } from "../workflows/codebuddy.workflow";
 
 export const mastra = new Mastra({
-  workflows: { codeBuddyWorkflow },
-  agents: { codeBuddyAgent },
-  telemetry: {
-    enabled: false,
-  },
+	workflows: { codeBuddyWorkflow },
+	agents: { codeBuddyAgent },
+	storage: new LibSQLStore({
+		url: ":memory:",
+	}),
+	logger: new PinoLogger({
+		name: "Mastra",
+		level: "info",
+	}),
+	telemetry: {
+		enabled: false,
+	},
+	observability: {
+		default: { enabled: true },
+	},
+	server: {
+		build: {
+			openAPIDocs: true,
+			swaggerUI: true,
+		},
+		apiRoutes: [a2aAgentRoute],
+	},
 });

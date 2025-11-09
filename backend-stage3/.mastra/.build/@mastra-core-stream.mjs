@@ -1,1 +1,1 @@
-export { C as ChunkFrom } from './agent.mjs';
+export { C as ChunkFrom } from './stream.mjs';

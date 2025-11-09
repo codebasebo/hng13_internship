@@ -1,17 +1,18 @@
-# TelexCodeBuddy - AI Code Assistant Agent
+# CodeBuddy - AI Code Assistant Agent
 
-A powerful AI-driven code assistant that integrates with Telex.im to help developers with code reviews, explanations, refactoring suggestions, and code snippets.
+A powerful AI-driven code assistant built with Mastra that integrates with Telex.im to help developers with code reviews, explanations, refactoring suggestions, and code snippets.
 
 ## Overview
 
-TelexCodeBuddy is an intelligent agent built with Node.js, Express, and Mastra that connects to the Telex.im platform via the A2A (Agent-to-Agent) protocol. It leverages intent classification and specialized handlers to provide context-aware assistance to developers.
+CodeBuddy is an intelligent agent built with TypeScript and Mastra that connects to the Telex.im platform via the A2A (Agent-to-Agent) protocol. It provides context-aware assistance to developers through advanced AI capabilities.
 
 ### Features
 
-- **Code Reviews**: Analyzes code for bugs, best practices, and performance issues
-- **Explanations**: Explains programming concepts and code snippets
-- **Refactoring Suggestions**: Recommends code improvements and optimizations
-- **Snippet Generation**: Provides ready-to-use code examples for common tasks
+- **Code Reviews**: Analyzes code for bugs, security issues, performance problems, and best practices
+- **Code Explanations**: Breaks down complex code into understandable explanations  
+- **Refactoring**: Suggests improvements and provides refactored versions of code
+- **Code Generation**: Creates code snippets and examples based on user requirements
+- **Multi-language Support**: Supports JavaScript, TypeScript, Python, Java, and more
 - **Real-time Integration**: Seamlessly responds to messages on Telex.im
 
 ## Architecture
@@ -24,25 +25,24 @@ TelexCodeBuddy is an intelligent agent built with Node.js, Express, and Mastra t
                     A2A Protocol
                          │
 ┌────────────────────────▼────────────────────────────────┐
-│              TelexCodeBuddy Server                        │
+│                CodeBuddy Agent                           │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │    Express.js Server (Port 4000)                 │   │
-│  │    POST /a2a/agent/telex-codebuddy             │   │
+│  │    Mastra Server                                 │   │
+│  │    POST /a2a/agent/codeBuddyAgent               │   │
 │  └──────────────────┬───────────────────────────────┘   │
 │                     │                                     │
 │  ┌──────────────────▼───────────────────────────────┐   │
-│  │    Agent Handler (runAgent)                      │   │
-│  │    ├─ Input Validation                           │   │
-│  │    ├─ Intent Classification                      │   │
+│  │    CodeBuddy Agent                               │   │
+│  │    ├─ GROQ Language Model                        │   │
+│  │    ├─ Memory Storage (LibSQL)                    │   │
+│  │    └─ Workflow Integration                       │   │
+│  └──────────────────┬───────────────────────────────┘   │
+│                     │                                     │
+│  ┌──────────────────▼───────────────────────────────┐   │
+│  │    CodeBuddy Workflow                            │   │
+│  │    ├─ Message Processing                         │   │
+│  │    ├─ Agent Execution                            │   │
 │  │    └─ Response Generation                        │   │
-│  └──────────────────┬───────────────────────────────┘   │
-│                     │                                     │
-│  ┌──────────────────▼───────────────────────────────┐   │
-│  │    Intent Handlers                               │   │
-│  │    ├─ Code Review Handler                        │   │
-│  │    ├─ Explanation Handler                        │   │
-│  │    ├─ Refactoring Handler                        │   │
-│  │    └─ Snippet Handler                            │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```

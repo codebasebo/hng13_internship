@@ -1,0 +1,1 @@
+web: node --import=./.mastra/output/instrumentation.mjs .mastra/output/index.mjs

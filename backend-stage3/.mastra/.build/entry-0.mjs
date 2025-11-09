@@ -4,11 +4,14 @@ import { TABLE_EVALS } from '@mastra/core/storage';
 import { scoreTraces, scoreTracesWorkflow } from '@mastra/core/scores/scoreTraces';
 import { generateEmptyFromSchema, checkEvalStorageFields } from '@mastra/core/utils';
 import { Mastra } from '@mastra/core/mastra';
-import { Agent } from '@mastra/core';
-import { config } from 'dotenv';
+import { PinoLogger } from '@mastra/loggers';
+import { LibSQLStore } from '@mastra/libsql';
+import { registerApiRoute } from '@mastra/core/server';
+import crypto$1, { randomUUID } from 'crypto';
+import { Agent, tryGenerateWithJsonFallback, tryStreamWithJsonFallback, MessageList, convertMessages } from '@mastra/core/agent';
+import { Memory as Memory$1 } from '@mastra/memory';
 import { createWorkflow, createStep } from '@mastra/core/workflows';
 import { z, ZodObject, ZodFirstPartyTypeKind } from 'zod';
-import crypto$1, { randomUUID } from 'crypto';
 import { readdir, readFile, mkdtemp, rm, writeFile, mkdir, copyFile, stat } from 'fs/promises';
 import * as https from 'https';
 import { join as join$1 } from 'path/posix';
@@ -32,7 +35,6 @@ import { bodyLimit } from 'hono/body-limit';
 import { MastraError, ErrorCategory, ErrorDomain, getErrorFromUnknown } from '@mastra/core/error';
 import { ModelRouterLanguageModel, PROVIDER_REGISTRY, getProviderConfig } from '@mastra/core/llm';
 import { ChunkFrom } from '@mastra/core/stream';
-import { Agent as Agent$1, tryGenerateWithJsonFallback, tryStreamWithJsonFallback, MessageList, convertMessages } from '@mastra/core/agent';
 import util, { promisify } from 'util';
 import { Buffer as Buffer$1 } from 'buffer';
 import { AISpanType } from '@mastra/core/ai-tracing';
@@ -48,72 +50,241 @@ import { createRequire } from 'module';
 import { tmpdir } from 'os';
 import { tools } from '#tools';
 
+const a2aAgentRoute = registerApiRoute("/a2a/agent/:agentId", {
+  method: "POST",
+  handler: async (c) => {
+    try {
+      const mastra = c.get("mastra");
+      const agentId = c.req.param("agentId");
+      let body = {};
+      try {
+        body = await c.req.json();
+      } catch {
+        body = {};
+      }
+      const { jsonrpc, id: requestId, params } = body || {};
+      if (!jsonrpc && !requestId && !params) {
+        return c.json(
+          {
+            jsonrpc: "2.0",
+            id: null,
+            result: {
+              id: randomUUID(),
+              contextId: randomUUID(),
+              kind: "task",
+              status: {
+                state: "completed",
+                timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+                message: {
+                  kind: "message",
+                  role: "agent",
+                  messageId: randomUUID(),
+                  parts: [
+                    {
+                      kind: "text",
+                      text: "No input received \u2014 but the gods are listening."
+                    }
+                  ]
+                }
+              },
+              artifacts: [],
+              history: []
+            }
+          },
+          200
+        );
+      }
+      if (jsonrpc !== "2.0" || !requestId) {
+        return c.json(
+          {
+            jsonrpc: "2.0",
+            id: requestId || null,
+            error: {
+              code: -32600,
+              message: 'Invalid Request: "jsonrpc" must be "2.0" and "id" must be provided.'
+            }
+          },
+          400
+        );
+      }
+      const agent = mastra?.getAgent?.(agentId);
+      if (!agent) {
+        return c.json(
+          {
+            jsonrpc: "2.0",
+            id: requestId,
+            error: {
+              code: -32602,
+              message: `Agent '${agentId}' not found.`
+            }
+          },
+          404
+        );
+      }
+      const { message, messages, contextId, taskId } = params || {};
+      const messagesList = message ? [message] : Array.isArray(messages) ? messages : [];
+      const mastraMessages = messagesList.map((msg) => ({
+        role: msg.role,
+        content: msg.parts?.map((part) => {
+          if (part.kind === "text") return part.text;
+          if (part.kind === "data") return JSON.stringify(part.data);
+          return "";
+        }).join("\n") || ""
+      }));
+      const result = await agent.generate(mastraMessages);
+      const textResponse = result && result.text || "No response generated.";
+      const artifacts = [
+        {
+          artifactId: randomUUID(),
+          name: `${agentId}Response`,
+          parts: [{ kind: "text", text: textResponse }]
+        }
+      ];
+      if (result?.toolResults?.length) {
+        artifacts.push({
+          artifactId: randomUUID(),
+          name: "ToolResults",
+          parts: result.toolResults.map((tool) => ({
+            kind: "data",
+            data: tool
+          }))
+        });
+      }
+      const history = [
+        ...messagesList.map((msg) => ({
+          kind: "message",
+          role: msg.role,
+          parts: msg.parts,
+          messageId: msg.messageId || randomUUID(),
+          taskId: msg.taskId || taskId || randomUUID()
+        })),
+        {
+          kind: "message",
+          role: "agent",
+          parts: [{ kind: "text", text: textResponse }],
+          messageId: randomUUID(),
+          taskId: taskId || randomUUID()
+        }
+      ];
+      return c.json({
+        jsonrpc: "2.0",
+        id: requestId,
+        result: {
+          id: taskId || randomUUID(),
+          contextId: contextId || randomUUID(),
+          kind: "task",
+          status: {
+            state: "completed",
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            message: {
+              kind: "message",
+              role: "agent",
+              messageId: randomUUID(),
+              parts: [{ kind: "text", text: textResponse }]
+            }
+          },
+          artifacts,
+          history
+        }
+      });
+    } catch (error) {
+      console.error("A2A route error:", error);
+      return c.json(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: {
+            code: -32603,
+            message: "Internal error",
+            data: { details: error.message || "Unknown error" }
+          }
+        },
+        500
+      );
+    }
+  }
+});
+
+const DEFAULT_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
+const codeBuddyAgent = new Agent({
+  name: "codeBuddyAgent",
+  instructions: `You are CodeBuddy, an expert AI code assistant specialized in helping developers write better code.
+
+Your capabilities include:
+- **Code Review**: Analyze code for bugs, security issues, performance problems, and best practices
+- **Code Explanation**: Break down complex code into understandable explanations
+- **Refactoring**: Suggest improvements and provide refactored versions of code
+- **Code Generation**: Create code snippets and examples based on user requirements
+
+When assisting users:
+1. Provide clear, concise, and actionable feedback
+2. Use proper technical terminology while keeping explanations accessible
+3. Highlight potential issues with severity levels (critical, warning, info)
+4. Suggest concrete improvements with code examples when applicable
+5. Consider performance, security, maintainability, and readability
+6. Support multiple programming languages and frameworks
+
+Be friendly, professional, and focused on helping developers improve their code quality.`,
+  model: {
+    provider: "GROQ",
+    name: DEFAULT_MODEL,
+    toolChoice: "auto"
+  },
+  memory: new Memory$1({
+    storage: new LibSQLStore({
+      url: "file:../mastra.db"
+      // path is relative to the .mastra/output directory
+    })
+  })
+});
+
 const codeBuddyStep = createStep({
   id: "codebuddy-step",
-  description: "Handles code review, explanation, refactoring, and snippet generation requests",
+  description: "Handles messages and runs the CodeBuddy agent",
   inputSchema: z.object({
-    message: z.string().describe("The user's message or code assistance request"),
-    userId: z.string().optional().describe("The user's ID"),
-    channelId: z.string().optional().describe("The channel ID")
+    message: z.string().describe("The user's message or code assistance request")
   }),
   outputSchema: z.object({
-    reply: z.string().describe("The agent's response to the user"),
-    attachments: z.array(z.object({
-      type: z.string(),
-      data: z.any()
-    })).optional().describe("Optional code attachments")
+    reply: z.string().describe("The agent's reply to the user")
   }),
   execute: async ({ inputData, mastra }) => {
     console.log("\u{1F680} Workflow triggered with input:", inputData);
     if (!inputData?.message) {
+      console.error("\u274C No user message received");
       throw new Error("No user message received");
     }
+    console.log("\u2705 Message received:", inputData.message);
     const agent = mastra?.getAgent("codeBuddyAgent");
     if (!agent) {
+      console.error("\u274C CodeBuddy Agent not found");
       throw new Error("CodeBuddy Agent not found");
     }
+    console.log("\u2705 Agent found, generating response...");
     const result = await agent.generate([
       {
         role: "user",
         content: inputData.message
       }
     ]);
-    console.log("\u2705 Agent response generated");
+    const reply = result?.text || "CodeBuddy is currently unavailable. Please try again in a moment.";
+    console.log("\u2705 Response generated:", reply.substring(0, 100) + "...");
     return {
-      reply: result?.text || "CodeBuddy is currently unavailable. Please try again in a moment.",
-      attachments: []
+      reply
     };
   }
 });
 const codeBuddyWorkflow = createWorkflow({
-  id: "telex_codebuddy_agent",
-  description: "TelexCodeBuddy - AI code assistant for reviews, explanations, refactoring, and snippets",
+  id: "codebuddy-workflow",
+  description: "CodeBuddy Workflow \u2014 triggered by a Telex event.",
   inputSchema: z.object({
-    message: z.string().describe("The user's input or code assistance command"),
-    userId: z.string().optional(),
-    channelId: z.string().optional()
+    message: z.string().describe("The user's input or code assistance command")
   }),
   outputSchema: z.object({
-    reply: z.string().describe("The agent's response"),
-    attachments: z.array(z.object({
-      type: z.string(),
-      data: z.any()
-    })).optional()
+    reply: z.string().describe("The agent's response")
   })
 }).then(codeBuddyStep);
 codeBuddyWorkflow.commit();
 
-config();
-const DEFAULT_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
-const codeBuddyAgent = new Agent({
-  name: "codeBuddyAgent",
-  instructions: "You are CodeBuddy, an expert AI code assistant. Help with code reviews, explanations, refactoring, and snippets.",
-  model: {
-    provider: "GROQ",
-    name: DEFAULT_MODEL,
-    toolChoice: "auto"
-  }
-});
 const mastra = new Mastra({
   workflows: {
     codeBuddyWorkflow
@@ -121,8 +292,27 @@ const mastra = new Mastra({
   agents: {
     codeBuddyAgent
   },
+  storage: new LibSQLStore({
+    url: ":memory:"
+  }),
+  logger: new PinoLogger({
+    name: "Mastra",
+    level: "info"
+  }),
   telemetry: {
     enabled: false
+  },
+  observability: {
+    default: {
+      enabled: true
+    }
+  },
+  server: {
+    build: {
+      openAPIDocs: true,
+      swaggerUI: true
+    },
+    apiRoutes: [a2aAgentRoute]
   }
 });
 
@@ -22476,7 +22666,7 @@ var ToolSummaryProcessor = class extends MemoryProcessor {
   summaryCache = /* @__PURE__ */ new Map();
   constructor({ summaryModel }) {
     super({ name: "ToolSummaryProcessor" });
-    this.summaryAgent = new Agent$1({
+    this.summaryAgent = new Agent({
       name: "ToolSummaryAgent",
       description: "A summary agent that summarizes tool calls and results",
       instructions: "You are a summary agent that summarizes tool calls and results",
@@ -22562,7 +22752,7 @@ var ToolSummaryProcessor = class extends MemoryProcessor {
     return messages;
   }
 };
-var AgentBuilder = class extends Agent$1 {
+var AgentBuilder = class extends Agent {
   builderConfig;
   /**
    * Constructor for AgentBuilder
@@ -22800,7 +22990,7 @@ var discoverUnitsStep = createStep({
     console.info("targetPath", targetPath);
     const model = await resolveModel({ runtimeContext, projectPath: targetPath, defaultModel: openai("gpt-4.1") });
     try {
-      const agent = new Agent$1({
+      const agent = new Agent({
         model,
         instructions: `You are an expert at analyzing Mastra projects.
 
@@ -23712,7 +23902,7 @@ var validationAndFixStep = createStep({
     try {
       const model = await resolveModel({ runtimeContext, projectPath: targetPath, defaultModel: openai("gpt-4.1") });
       const allTools = await AgentBuilderDefaults.getToolsForMode(targetPath, "template");
-      const validationAgent = new Agent$1({
+      const validationAgent = new Agent({
         name: "code-validator-fixer",
         description: "Specialized agent for validating and fixing template integration issues",
         instructions: `You are a code validation and fixing specialist. Your job is to:
@@ -24436,7 +24626,7 @@ var planningIterationStep = createStep({
     }
     try {
       const model = await resolveModel({ runtimeContext });
-      const planningAgent = new Agent$1({
+      const planningAgent = new Agent({
         model,
         instructions: taskPlanningPrompts.planningAgent.instructions({
           storedQAPairs
@@ -25160,7 +25350,7 @@ var workflowResearchStep = createStep({
     console.info("Starting workflow research...");
     try {
       const model = await resolveModel({ runtimeContext });
-      const researchAgent = new Agent$1({
+      const researchAgent = new Agent({
         model,
         instructions: workflowBuilderPrompts.researchAgent.instructions,
         name: "Workflow Research Agent"
@@ -30979,7 +31169,7 @@ async function generateSystemPromptHandler(c2) {
             Remember: A good system prompt should be specific enough to guide behavior but flexible enough to handle edge cases. 
             Focus on creating prompts that are clear, actionable, and aligned with the intended use case.
         `;
-    const systemPromptAgent = new Agent$1({
+    const systemPromptAgent = new Agent({
       name: "system-prompt-enhancer",
       instructions: ENHANCE_SYSTEM_PROMPT_INSTRUCTIONS,
       model: agent.llm?.getModel()
@@ -40479,8 +40669,8 @@ var require_token_util = __commonJS({
 var tokenUtilE5QO2RCL = require_token_util();
 
 var tokenUtilE5QO2RCL$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  default: tokenUtilE5QO2RCL
+	__proto__: null,
+	default: tokenUtilE5QO2RCL
 });
 
 // ../../node_modules/.pnpm/@vercel+oidc@3.0.3/node_modules/@vercel/oidc/dist/token.js
@@ -40539,14 +40729,14 @@ var require_token = __commonJS({
 var tokenC3IMNCC4 = require_token();
 
 var tokenC3IMNCC4$1 = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  default: tokenC3IMNCC4
+	__proto__: null,
+	default: tokenC3IMNCC4
 });
 
 var distYREX2TJT = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  createOpenAI: createOpenAI,
-  openai: openai
+	__proto__: null,
+	createOpenAI: createOpenAI,
+	openai: openai
 });
 
 var anthropicErrorDataSchema = z.object({
@@ -41691,9 +41881,9 @@ function createAnthropic(options = {}) {
 var anthropic = createAnthropic();
 
 var distX7XR3M3Z = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  anthropic: anthropic,
-  createAnthropic: createAnthropic
+	__proto__: null,
+	anthropic: anthropic,
+	createAnthropic: createAnthropic
 });
 
 function convertToGroqChatMessages(prompt) {
@@ -42452,9 +42642,9 @@ function createGroq(options = {}) {
 var groq = createGroq();
 
 var distXVBSOGFK = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  createGroq: createGroq,
-  groq: groq
+	__proto__: null,
+	createGroq: createGroq,
+	groq: groq
 });
 
 function getOpenAIMetadata(message) {
@@ -43377,9 +43567,9 @@ function createXai(options = {}) {
 var xai = createXai();
 
 var distR7WYX6LC = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  createXai: createXai,
-  xai: xai
+	__proto__: null,
+	createXai: createXai,
+	xai: xai
 });
 
 function convertJSONSchemaToOpenAPISchema(jsonSchema) {
@@ -44314,7 +44504,7 @@ function createGoogleGenerativeAI(options = {}) {
 var google = createGoogleGenerativeAI();
 
 var distPQZUVLPC = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  createGoogleGenerativeAI: createGoogleGenerativeAI,
-  google: google
+	__proto__: null,
+	createGoogleGenerativeAI: createGoogleGenerativeAI,
+	google: google
 });
