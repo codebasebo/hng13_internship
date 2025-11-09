@@ -1,11 +1,12 @@
 {
   "active": true,
   "category": "utilities",
-  "description": "TelexCodeBuddy - An intelligent AI code assistant that provides code reviews, explanations, refactoring suggestions, and code snippets",
+  "description": "TelexCodeBuddy - An intelligent AI code assistant that provides code reviews, explanations, refactoring suggestions, and code snippets for developers on Telex.im",
   "id": "telex_codebuddy_agent",
+  "long_description": "CodeBuddy is an expert AI code assistant designed to help developers on Telex.im with:\n\n• **Code Reviews**: Analyze code for bugs, performance issues, and best practices\n• **Explanations**: Provide clear, step-by-step explanations of programming concepts and code\n• **Refactoring**: Suggest code improvements and optimizations\n• **Snippets**: Generate ready-to-use code examples for common development tasks\n\nSupported Languages: JavaScript, TypeScript, Python, Java, C++, Go, Rust, and more.\n\nHow to use:\n- Ask 'review: <code>' for code review\n- Ask 'explain: <code>' for explanations\n- Ask 'refactor: <code>' for refactoring suggestions\n- Ask 'snippet: <description>' for code examples\n- Or just ask naturally - CodeBuddy will understand your intent!\n\nCodeBuddy maintains a helpful, professional tone and provides clear, structured responses with proper markdown formatting.",
   "name": "TelexCodeBuddy",
   "short_description": "AI code assistant for reviews, explanations, refactoring, and snippets",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "triggerOnNewMessage": true,
   "tags": [
     "code",
@@ -13,20 +14,19 @@
     "ai",
     "developer",
     "review",
-    "refactor"
+    "refactor",
+    "snippets",
+    "explanation"
   ],
-  "connections": {},
   "nodes": [
     {
-      "id": "codebuddy-step",
-      "name": "CodeBuddy Step",
-      "type": "trigger",
+      "id": "codebuddy_agent",
+      "name": "CodeBuddy Agent",
+      "type": "a2a/mastra-a2a-node",
       "typeVersion": 1,
-      "position": [500, 300],
-      "parameters": {
-        "workflowId": "telex_codebuddy_agent",
-        "description": "Handles code review, explanation, refactoring, and snippet generation"
-      }
+      "position": [816, -112],
+      "parameters": {},
+      "url": "https://backend-stage3-h6kfw72n3-ucheroyal2021-2830s-projects.vercel.app/a2a/agent/codeBuddyAgent"
     }
   ],
   "pinData": {},
