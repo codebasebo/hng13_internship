@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import { config } from 'dotenv';
 import { runAgent } from './agent/index.js';
 import { A2ARequest } from './types.js';
+import { v4 as uuidv4 } from 'uuid';
 
 // Load environment variables
 config();
@@ -26,15 +27,55 @@ app.post('/a2a/agent/telex-codebuddy', async (req, res) => {
 
     const response = await runAgent(payload);
 
-    // You can either:
-    //  - 1) Return the reply as the synchronous A2A response (preferred for quick responses)
-    //  - 2) Kick off an async job that posts back to Telex API if needed.
-    //
-    // Here we return the response directly.
-    return res.json(response);
+    // Wrap in JSON-RPC 2.0 format (required for A2A/Telex)
+    const jsonRpcResponse = {
+      jsonrpc: '2.0',
+      id: payload.id || uuidv4(),  // Use request ID or generate one
+      result: {
+        id: uuidv4(),  // Unique task ID
+        contextId: payload.channel_id || uuidv4(),  // Use channel ID or generate
+        status: {
+          state: 'completed',  // Or 'running'/'failed' based on logic
+          timestamp: new Date().toISOString(),
+          message: {
+            messageId: uuidv4(),
+            role: 'agent',
+            parts: [
+              {
+                kind: 'text',
+                text: response.reply?.text || 'No response generated'  // Your agent's text
+              }
+            ],
+            kind: 'message'
+          }
+        },
+        artifacts: response.reply?.attachments ? [
+          {
+            artifactId: uuidv4(),
+            name: 'responseArtifact',
+            parts: response.reply.attachments.map(att => ({
+              kind: att.type,
+              text: att.data?.content || JSON.stringify(att.data)
+            }))
+          }
+        ] : [],
+        history: [],  // Optional: Add conversation history if needed
+        kind: 'task'
+      }
+    };
+
+    return res.json(jsonRpcResponse);
   } catch (err: any) {
     console.error('A2A endpoint error', err);
-    return res.status(500).json({ error: String(err?.message ?? err) });
+    // Return error in JSON-RPC format too
+    return res.status(500).json({
+      jsonrpc: '2.0',
+      id: req.body?.id || uuidv4(),
+      error: {
+        code: -32603,
+        message: String(err?.message ?? err)
+      }
+    });
   }
 });
 
