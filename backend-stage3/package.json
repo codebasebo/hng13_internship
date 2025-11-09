@@ -2,11 +2,15 @@
   "name": "telex-codebuddy",
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
-    "start": "node ./dist/server.js",
-    "dev": "tsx src/server.ts",
-    "dev:old": "node --loader ts-node/esm src/server.ts",
-    "build": "tsc"
+    "dev": "mastra dev",
+    "build": "mastra build",
+    "start": "mastra start",
+    "express:dev": "tsx src/server.ts",
+    "express:start": "node ./dist/server.js"
   },
   "dependencies": {
     "@mastra/core": "^0.23.3",
@@ -19,6 +23,8 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
+    "@types/node": "^24.9.2",
+    "mastra": "^0.17.7",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.20.6",

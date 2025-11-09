@@ -21,11 +21,14 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
  */
 app.post('/a2a/agent/telex-codebuddy', async (req, res) => {
   try {
+    console.log('🚀 Workflow triggered with input:', JSON.stringify(req.body, null, 2));
+    
     const payload: A2ARequest = req.body;
     // quick validation
     if (!payload) return res.status(400).json({ error: 'missing payload' });
 
     const response = await runAgent(payload);
+    console.log('✅ Agent response generated:', response.reply?.text?.substring(0, 100) + '...');
 
     // Wrap in JSON-RPC 2.0 format (required for A2A/Telex)
     const jsonRpcResponse = {
@@ -64,9 +67,10 @@ app.post('/a2a/agent/telex-codebuddy', async (req, res) => {
       }
     };
 
+    console.log('📤 Sending response back to Telex');
     return res.json(jsonRpcResponse);
   } catch (err: any) {
-    console.error('A2A endpoint error', err);
+    console.error('❌ A2A endpoint error', err);
     // Return error in JSON-RPC format too
     return res.status(500).json({
       jsonrpc: '2.0',
