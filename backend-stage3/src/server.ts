@@ -21,12 +21,18 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
  */
 app.post('/a2a/agent/telex-codebuddy', async (req, res) => {
   try {
-    console.log('🚀 Workflow triggered with input:', JSON.stringify(req.body, null, 2));
+    console.log('🚀 [A2A Request] Incoming request body:', JSON.stringify(req.body, null, 2));
+    console.log('🚀 [A2A Request] Headers:', JSON.stringify(req.headers, null, 2));
     
     const payload: A2ARequest = req.body;
     // quick validation
-    if (!payload) return res.status(400).json({ error: 'missing payload' });
+    if (!payload) {
+      console.error('❌ Missing payload');
+      return res.status(400).json({ error: 'missing payload' });
+    }
 
+    console.log('📝 [Processing] Extracted text:', payload.text);
+    
     const response = await runAgent(payload);
     console.log('✅ Agent response generated:', response.reply?.text?.substring(0, 100) + '...');
 
@@ -67,7 +73,7 @@ app.post('/a2a/agent/telex-codebuddy', async (req, res) => {
       }
     };
 
-    console.log('📤 Sending response back to Telex');
+    console.log('📤 [Response] Sending response back to Telex');
     return res.json(jsonRpcResponse);
   } catch (err: any) {
     console.error('❌ A2A endpoint error', err);
