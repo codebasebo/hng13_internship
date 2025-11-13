@@ -1,0 +1,49 @@
+270daa2 2025-11-12 | chore: prepare for v1.0.0 release
+d6e6dd6 2025-11-12 | style: format code with Prettier
+846378f 2025-11-12 | chore: add automated setup script
+1397ecb 2025-11-12 | docs: update README with setup instructions
+812d6ef 2025-11-12 | docs: add template examples
+93bdd30 2025-11-12 | docs: create architecture documentation
+74dfda4 2025-11-12 | docs: add API testing with cURL examples
+4d831a2 2025-11-12 | docs: write comprehensive quickstart guide
+baf07bf 2025-11-12 | chore: add environment variable examples
+0de0e33 2025-11-12 | fix(ci): correct Docker build paths
+0d7d410 2025-11-12 | ci: setup GitHub Actions CI/CD pipeline
+2c9cd59 2025-11-12 | build: create Dockerfiles for all services
+981a1e8 2025-11-12 | build: add Docker Compose configuration
+4c5e9a4 2025-11-11 | feat(push): implement circuit breaker for FCM
+021306a 2025-11-11 | feat(push): create push notification worker
+9a60485 2025-11-11 | feat(push): integrate Firebase Cloud Messaging
+3b7fc18 2025-11-11 | feat(email): add exponential backoff retry
+4ea27d3 2025-11-11 | feat(email): implement circuit breaker
+aaeef7f 2025-11-11 | feat(email): integrate Nodemailer SMTP
+1da45be 2025-11-11 | feat(email): setup RabbitMQ consumer
+29588b9 2025-11-11 | perf(gateway): add response compression
+e51f53d 2025-11-11 | fix(gateway): correct routing key logic
+e9f4dba 2025-11-11 | feat(gateway): add idempotency checking
+2eb093a 2025-11-11 | feat(gateway): create notification routes
+ada1add 2025-11-11 | feat(gateway): implement rate limiting
+67338f1 2025-11-11 | feat(gateway): add JWT authentication middleware
+9222dd0 2025-11-11 | feat(gateway): setup Express server
+056c7b7 2025-11-10 | refactor(template): optimize caching with Redis
+0fcbd09 2025-11-10 | fix(template): handle missing variables gracefully
+e60b67a 2025-11-10 | feat(template): support multi-language templates
+620d85d 2025-11-10 | feat(template): add CRUD operations
+eb99c5a 2025-11-10 | feat(template): implement Handlebars renderer
+be5f386 2025-11-10 | feat(template): setup database schema with versioning
+09aab22 2025-11-10 | test(user): add authentication unit tests
+2b36012 2025-11-10 | feat(user): add user preferences management
+5152521 2025-11-10 | fix(user): validate email and password strength
+67c6560 2025-11-10 | feat(user): implement JWT authentication
+9f66f28 2025-11-10 | feat(user): add user registration endpoint
+8502012 2025-11-10 | feat(user): create Sequelize models for users
+6c1aa75 2025-11-09 | refactor(shared): extract retry logic utility
+7adbcf1 2025-11-09 | fix(shared): correct log level configuration
+fdadbda 2025-11-09 | feat(shared): implement RabbitMQ connection manager
+dd2409a 2025-11-09 | feat(shared): add Redis client wrapper
+c92298f 2025-11-09 | feat(shared): implement structured logger with Winston
+1683408 2025-11-09 | feat(shared): define core types and interfaces
+a75fe56 2025-11-09 | docs: add project requirements and task description
+a4fae94 2025-11-09 | chore: add TypeScript and build configuration
+ca63998 2025-11-09 | feat: initialize monorepo structure for microservices
+acd9368 2025-11-05 | Initial project structure
