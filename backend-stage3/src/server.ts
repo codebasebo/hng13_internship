@@ -1,7 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { config } from 'dotenv';
-import { mastra } from './mastra/index.js';
+import { runAgent } from './agent/index.js';
 import { A2ARequest } from './types.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -19,7 +19,7 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
  *
  * NOTE: adapt field names to match the exact Telex/Mastra schema if they differ.
  */
-app.post('/a2a/agent/codeBuddyAgent', async (req, res) => {
+app.post('/a2a/agent/telex-codebuddy', async (req, res) => {
   try {
     console.log('🚀 [A2A Request] Incoming request body:', JSON.stringify(req.body, null, 2));
     console.log('🚀 [A2A Request] Headers:', JSON.stringify(req.headers, null, 2));
@@ -33,25 +33,8 @@ app.post('/a2a/agent/codeBuddyAgent', async (req, res) => {
 
     console.log('📝 [Processing] Extracted text:', payload.text);
     
-    if (!payload.text) {
-      return res.status(400).json({
-        jsonrpc: '2.0',
-        id: payload.id || uuidv4(),
-        error: {
-          code: -32602,
-          message: 'Invalid params: text is required'
-        }
-      });
-    }
-    
-    const agent = mastra.getAgent("codeBuddyAgent");
-    const result = await agent.generate([
-      {
-        role: "user",
-        content: payload.text,
-      },
-    ]);
-    console.log('✅ Agent response generated:', result.text?.substring(0, 100) + '...');
+    const response = await runAgent(payload);
+    console.log('✅ Agent response generated:', response.reply?.text?.substring(0, 100) + '...');
 
     // Wrap in JSON-RPC 2.0 format (required for A2A/Telex)
     const jsonRpcResponse = {
@@ -69,13 +52,22 @@ app.post('/a2a/agent/codeBuddyAgent', async (req, res) => {
             parts: [
               {
                 kind: 'text',
-                text: result.text || 'No response generated'  // Your agent's text
+                text: response.reply?.text || 'No response generated'  // Your agent's text
               }
             ],
             kind: 'message'
           }
         },
-        artifacts: [],  // Simplified for now
+        artifacts: response.reply?.attachments ? [
+          {
+            artifactId: uuidv4(),
+            name: 'responseArtifact',
+            parts: response.reply.attachments.map(att => ({
+              kind: att.type,
+              text: att.data?.content || JSON.stringify(att.data)
+            }))
+          }
+        ] : [],
         history: [],  // Optional: Add conversation history if needed
         kind: 'task'
       }
@@ -113,18 +105,7 @@ app.post('/webhook/telex', async (req, res) => {
       text: event.text,
       metadata: event.metadata
     };
-    
-    if (!payload.text) {
-      return res.status(400).json({ ok: false, error: 'No text provided' });
-    }
-    
-    const agent = mastra.getAgent("codeBuddyAgent");
-    const result = await agent.generate([
-      {
-        role: "user",
-        content: payload.text,
-      },
-    ]);
+    const response = await runAgent(payload);
     // If Telex expects 200 quickly, acknowledge then process asynchronously.
     res.json({ ok: true });
     // Optionally push response back using Telex REST API (if available).
@@ -135,8 +116,8 @@ app.post('/webhook/telex', async (req, res) => {
   }
 });
 
-app.get('/', (_req, res) => res.send('CodeBuddy is alive - AI code assistant for reviews, explanations, refactoring, and snippets'));
+app.get('/', (_req, res) => res.send('TelexCodeBuddy is alive'));
 
 app.listen(PORT, () => {
-  console.log(`CodeBuddy running on port ${PORT}`);
+  console.log(`TelexCodeBuddy running on port ${PORT}`);
 });
