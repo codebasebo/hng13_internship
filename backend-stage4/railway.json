@@ -1,9 +1,8 @@
 {
   "build": {
-    "builder": "dockerfile",
-    "dockerfilePath": "Dockerfile.railway"
+    "builder": "docker-compose"
   },
   "deploy": {
-    "startCommand": "docker-compose -f docker-compose.railway.yml up --build"
+    "startCommand": "docker-compose up --build"
   }
 }

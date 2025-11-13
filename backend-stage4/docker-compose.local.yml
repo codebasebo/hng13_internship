@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for User Service
+  postgres-user:
+    image: postgres:16-alpine
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: user_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - notification-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Template Service
+  postgres-template:
+    image: postgres:16-alpine
+    container_name: postgres-template
+    environment:
+      POSTGRES_DB: template_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-template-data:/var/lib/postgresql/data
+    networks:
+      - notification-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - notification-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - notification-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # User Service
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: user-service
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres-user:5432/user_service
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRY: 24h
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - notification-network
+    restart: unless-stopped
+
+  # Template Service
+  template-service:
+    build:
+      context: .
+      dockerfile: services/template-service/Dockerfile
+    container_name: template-service
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:postgres@postgres-template:5432/template_service
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres-template:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - notification-network
+    restart: unless-stopped
+
+  # Email Service
+  email-service:
+    build:
+      context: .
+      dockerfile: services/email-service/Dockerfile
+    container_name: email-service
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      TEMPLATE_SERVICE_URL: http://template-service:3002
+      USER_SERVICE_URL: http://user-service:3001
+    ports:
+      - "3003:3003"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - notification-network
+    restart: unless-stopped
+
+  # Push Service
+  push-service:
+    build:
+      context: .
+      dockerfile: services/push-service/Dockerfile
+    container_name: push-service
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      FCM_SERVER_KEY: ${FCM_SERVER_KEY}
+      TEMPLATE_SERVICE_URL: http://template-service:3002
+      USER_SERVICE_URL: http://user-service:3001
+    ports:
+      - "3004:3004"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - notification-network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: api-gateway
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      USER_SERVICE_URL: http://user-service:3001
+      TEMPLATE_SERVICE_URL: http://template-service:3002
+      EMAIL_SERVICE_URL: http://email-service:3003
+      PUSH_SERVICE_URL: http://push-service:3004
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    ports:
+      - "3000:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      template-service:
+        condition: service_started
+    networks:
+      - notification-network
+    restart: unless-stopped
+
+networks:
+  notification-network:
+    driver: bridge
+
+volumes:
+  postgres-user-data:
+  postgres-template-data:
+  redis-data:
+  rabbitmq-data:
