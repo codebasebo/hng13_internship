@@ -1,15 +1,14 @@
-# Ignore everything except backend-stage4 for Railway root build
+# Ignore everything by default
 *
-!backend-stage4/
-!backend-stage4/package.json
-!backend-stage4/pnpm-lock.yaml
-!backend-stage4/pnpm-workspace.yaml
-!backend-stage4/tsconfig.json
-!backend-stage4/shared/
-!backend-stage4/services/
 
-# Exclude node modules from host (will be reinstalled in container)
+# Include backend-stage4 project files
+!backend-stage4
+!backend-stage4/**
+
+# Exclude host build artifacts
 backend-stage4/node_modules
+backend-stage4/dist
+backend-stage4/.turbo
 
 # Git metadata
 .git
