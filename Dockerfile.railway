@@ -3,13 +3,10 @@ FROM node:20-alpine
 # Set work directory
 WORKDIR /app
 
-# Copy only the backend-stage4 sources needed for build
-COPY backend-stage4/package.json backend-stage4/pnpm-lock.yaml backend-stage4/pnpm-workspace.yaml backend-stage4/tsconfig.json ./backend-stage4/
-COPY backend-stage4/shared ./backend-stage4/shared
-COPY backend-stage4/services ./backend-stage4/services
-
-# Move into service directory
-WORKDIR /app/backend-stage4
+# Copy sources
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
+COPY shared ./shared
+COPY services ./services
 
 # Install pnpm and dependencies
 RUN npm install -g pnpm && pnpm install --frozen-lockfile
