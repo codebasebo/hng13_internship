@@ -1,7 +1,6 @@
 [build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile"
-workingDirectory = "."
+dockerfilePath = "Dockerfile.railway"
 
 [deploy]
 startCommand = "node dist/services/api-gateway/src/index.js"
