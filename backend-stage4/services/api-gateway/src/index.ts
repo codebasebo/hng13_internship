@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import swaggerUi from 'swagger-ui-express';
 import { RabbitMQClient } from '../../../shared/utils/rabbitmq';
 import { RedisClient } from '../../../shared/utils/redis';
 import { Logger } from '../../../shared/utils/logger';
@@ -12,8 +11,13 @@ import { errorHandler } from '../../../shared/middleware/error-handler';
 import { correlationId } from '../../../shared/middleware/correlation-id';
 import { ResponseBuilder } from '../../../shared/types/response.types';
 import { createNotificationRoutes } from './routes/notification.routes';
-import { swaggerSpec } from '../../../shared/config/swagger';
 import { getMetricsTracker } from '../../../shared/utils/metrics';
+import { connectDatabase as connectUserDatabase } from '../../user-service/src/models';
+import { connectDatabase as connectTemplateDatabase } from '../../template-service/src/models';
+import { UserService } from '../../user-service/src/services/user.service';
+import { TemplateService } from '../../template-service/src/services/template.service';
+import { createUserRoutes } from '../../user-service/src/routes/user.routes';
+import { createTemplateRoutes } from '../../template-service/src/routes/template.routes';
 
 dotenv.config();
 
@@ -89,26 +93,20 @@ app.get('/metrics', (req, res) => {
   );
 });
 
-// Swagger API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Notification System API Docs'
-}));
-
 // API info
 app.get('/', (req, res) => {
   res.json(
     ResponseBuilder.success(
       {
         name: 'Distributed Notification System API',
-        version: '1.0.1',
-        build: 'railway-2024-11-14',
-        documentation: '/api-docs',
+        version: '1.0.2',
+        build: 'railway-2024-11-14-unified',
         trustProxy: app.get('trust proxy'),
         endpoints: {
-          docs: '/api-docs',
           health: '/health',
+          metrics: '/metrics',
+          users: '/api/v1/users',
+          templates: '/api/v1/templates',
           notifications: '/api/notifications'
         }
       },
@@ -154,6 +152,28 @@ const startServer = async () => {
   } catch (error) {
     logger.error('Failed to connect to Redis', error as Error);
     redis = null;
+  }
+
+  // Initialize User Service
+  try {
+    logger.info('Connecting to User Service database...');
+    await connectUserDatabase();
+    const userService = new UserService(redis!);
+    app.use('/api/v1/users', createUserRoutes(userService));
+    logger.info('User Service routes initialized');
+  } catch (error) {
+    logger.error('Failed to initialize User Service', error as Error);
+  }
+
+  // Initialize Template Service
+  try {
+    logger.info('Connecting to Template Service database...');
+    await connectTemplateDatabase();
+    const templateService = new TemplateService(redis!);
+    app.use('/api/v1/templates', createTemplateRoutes(templateService));
+    logger.info('Template Service routes initialized');
+  } catch (error) {
+    logger.error('Failed to initialize Template Service', error as Error);
   }
 
   // Routes - pass null if not connected
