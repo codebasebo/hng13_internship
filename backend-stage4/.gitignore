@@ -66,10 +66,11 @@ temp/
 test-railway-*.sh
 RAILWAY_TEST_*.md
 
-# Documentation (keep only README.md)
+# Documentation (keep only README.md and SYSTEM_DESIGN.md)
 # All other .md files are ignored
 *.md
 !README.md
+!SYSTEM_DESIGN.md
 
 # Deployment configs for unused platforms
 fly/

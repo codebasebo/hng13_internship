@@ -1,3 +1,33 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     NotificationRequest:
+ *       type: object
+ *       required:
+ *         - notification_type
+ *         - user_id
+ *         - template_code
+ *         - variables
+ *       properties:
+ *         notification_type:
+ *           type: string
+ *           enum: [email, push, sms]
+ *         user_id:
+ *           type: string
+ *           format: uuid
+ *         template_code:
+ *           type: string
+ *         variables:
+ *           type: object
+ *         priority:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 4
+ *         metadata:
+ *           type: object
+ */
+
 import { Router, Request, Response, NextFunction } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,7 +56,39 @@ export const createNotificationRoutes = (
     next();
   };
 
-  // Send notification
+  /**
+   * @swagger
+   * /api/notifications:
+   *   post:
+   *     summary: Send a notification
+   *     description: Queue a notification (email or push) for asynchronous processing
+   *     tags: [Notifications]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/NotificationRequest'
+   *           example:
+   *             notification_type: email
+   *             user_id: 123e4567-e89b-12d3-a456-426614174000
+   *             template_code: welcome_email
+   *             variables:
+   *               name: John Doe
+   *               link: https://example.com/welcome
+   *             priority: 2
+   *     responses:
+   *       202:
+   *         description: Notification queued successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/NotificationResponse'
+   *       400:
+   *         description: Validation error
+   *       503:
+   *         description: Service unavailable (Redis/RabbitMQ not connected)
+   */
   router.post(
     '/',
     // authenticate,

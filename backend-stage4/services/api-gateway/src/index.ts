@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import { RabbitMQClient } from '../../../shared/utils/rabbitmq';
 import { RedisClient } from '../../../shared/utils/redis';
 import { Logger } from '../../../shared/utils/logger';
@@ -11,11 +12,14 @@ import { errorHandler } from '../../../shared/middleware/error-handler';
 import { correlationId } from '../../../shared/middleware/correlation-id';
 import { ResponseBuilder } from '../../../shared/types/response.types';
 import { createNotificationRoutes } from './routes/notification.routes';
+import { swaggerSpec } from '../../../shared/config/swagger';
+import { getMetricsTracker } from '../../../shared/utils/metrics';
 
 dotenv.config();
 
 const app = express();
 const logger = new Logger('api-gateway');
+const metrics = getMetricsTracker('api-gateway');
 const PORT = process.env.PORT || 3000;
 
 // Trust proxy - Required for Railway/Heroku/etc (behind reverse proxy)
@@ -37,6 +41,7 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(correlationId);
+app.use(metrics.trackRequest('http_requests'));
 app.use('/api/', limiter);
 
 // Health check
@@ -54,6 +59,43 @@ app.get('/health', (req, res) => {
   );
 });
 
+// Metrics endpoint
+app.get('/metrics', (req, res) => {
+  const allMetrics = metrics.getAllMetrics();
+  const summary: any = {};
+  
+  for (const [operation, data] of Object.entries(allMetrics)) {
+    const total = data.count + data.errors;
+    summary[operation] = {
+      total_operations: total,
+      successful: data.count,
+      failed: data.errors,
+      avg_time_ms: data.count > 0 ? (data.totalTime / data.count).toFixed(2) : 0,
+      error_rate_percent: total > 0 ? ((data.errors / total) * 100).toFixed(2) : 0,
+      last_updated: data.lastUpdated
+    };
+  }
+  
+  res.json(
+    ResponseBuilder.success(
+      {
+        service: 'api-gateway',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        metrics: summary
+      },
+      'Metrics retrieved successfully'
+    )
+  );
+});
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Notification System API Docs'
+}));
+
 // API info
 app.get('/', (req, res) => {
   res.json(
@@ -63,7 +105,12 @@ app.get('/', (req, res) => {
         version: '1.0.1',
         build: 'railway-2024-11-14',
         documentation: '/api-docs',
-        trustProxy: app.get('trust proxy')
+        trustProxy: app.get('trust proxy'),
+        endpoints: {
+          docs: '/api-docs',
+          health: '/health',
+          notifications: '/api/notifications'
+        }
       },
       'Welcome to the Notification System API'
     )
