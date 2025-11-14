@@ -1,6 +1,7 @@
 [build]
-builder = "DOCKERFILE"
+builder = "dockerfile"
 dockerfilePath = "Dockerfile"
+workingDirectory = "."
 
 [deploy]
 startCommand = "node dist/services/api-gateway/src/index.js"

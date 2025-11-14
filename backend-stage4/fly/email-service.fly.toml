@@ -1,0 +1,10 @@
+app = "REPLACE_EMAIL_SERVICE_APP"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "services/email-service/Dockerfile"
+  context = "."
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3003"

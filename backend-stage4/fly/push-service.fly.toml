@@ -1,0 +1,10 @@
+app = "REPLACE_PUSH_SERVICE_APP"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "services/push-service/Dockerfile"
+  context = "."
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3004"

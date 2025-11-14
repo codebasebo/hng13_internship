@@ -1,0 +1,10 @@
+app = "REPLACE_TEMPLATE_SERVICE_APP"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "services/template-service/Dockerfile"
+  context = "."
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3002"
