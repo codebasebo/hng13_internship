@@ -29,7 +29,7 @@ export const createNotificationRoutes = (
   // Send notification
   router.post(
     '/',
-    authenticate,
+    // authenticate,
     [
       body('notification_type').isIn(Object.values(NotificationType)).withMessage('Valid notification type is required'),
       body('user_id').isUUID().withMessage('Valid user ID is required'),
@@ -108,7 +108,7 @@ export const createNotificationRoutes = (
   // Get notification status
   router.get(
     '/status/:request_id',
-    authenticate,
+    // authenticate,
     [param('request_id').notEmpty().withMessage('Request ID is required')],
     validate,
     async (req: AuthRequest, res: Response) => {
