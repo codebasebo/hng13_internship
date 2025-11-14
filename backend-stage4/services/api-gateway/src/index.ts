@@ -18,11 +18,16 @@ const app = express();
 const logger = new Logger('api-gateway');
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - Required for Railway/Heroku/etc (behind reverse proxy)
+app.set('trust proxy', 1);
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: ResponseBuilder.error('Too Many Requests', 'Too many requests from this IP, please try again later')
+  message: ResponseBuilder.error('Too Many Requests', 'Too many requests from this IP, please try again later'),
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
 // Middleware
