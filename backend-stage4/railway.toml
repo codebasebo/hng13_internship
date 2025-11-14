@@ -1,6 +1,7 @@
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile.railway"
+watchPatterns = ["**/*.ts", "**/*.js", "package.json", "Dockerfile.railway"]
 
 [deploy]
 startCommand = "node dist/services/api-gateway/src/index.js"
