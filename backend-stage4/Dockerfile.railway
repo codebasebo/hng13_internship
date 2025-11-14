@@ -1,13 +1,15 @@
-# Dockerfile.railway
+# Dockerfile.railway - Force rebuild
 FROM node:20-alpine
+
+# Force rebuild by changing this comment: v4
 
 WORKDIR /app
 
 # Install build dependencies for native modules (bcrypt, etc.)
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ && echo "Build deps installed"
 
 # Install pnpm globally
-RUN npm install -g pnpm
+RUN npm install -g pnpm && echo "pnpm installed"
 
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
@@ -17,10 +19,11 @@ COPY shared ./shared
 COPY services ./services
 
 # Install dependencies and rebuild native modules
-RUN pnpm install --frozen-lockfile && pnpm rebuild bcrypt
+RUN pnpm install --frozen-lockfile && echo "Dependencies installed"
+RUN pnpm rebuild bcrypt && echo "bcrypt rebuilt"
 
 # Build TypeScript
-RUN pnpm build
+RUN pnpm build && echo "Build completed"
 
 EXPOSE 3000
 CMD ["node", "dist/services/api-gateway/src/index.js"]
