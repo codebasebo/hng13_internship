@@ -9,8 +9,8 @@ import { authenticate, AuthRequest } from '../../../../shared/middleware/auth';
 import { NotificationType, NotificationPriority } from '../../../../shared/enums/notification.enum';
 
 export const createNotificationRoutes = (
-  rabbitMQ: RabbitMQClient,
-  redis: RedisClient
+  rabbitMQ: RabbitMQClient | null,
+  redis: RedisClient | null
 ): Router => {
   const router = Router();
   const logger = new Logger('notification-routes');

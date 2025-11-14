@@ -1,8 +1,0 @@
-app = "REPLACE_RABBITMQ_APP"
-primary_region = "cdg"
-
-image = "rabbitmq:3-management-alpine"
-
-[env]
-  RABBITMQ_DEFAULT_USER = "admin"
-  RABBITMQ_DEFAULT_PASS = "admin"

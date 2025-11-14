@@ -1,4 +1,0 @@
-app = "REPLACE_REDIS_APP"
-primary_region = "cdg"
-
-image = "redis:7-alpine"

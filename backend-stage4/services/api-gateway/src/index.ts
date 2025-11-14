@@ -64,9 +64,12 @@ app.get('/', (req, res) => {
 });
 
 const startServer = async () => {
+  let rabbitMQ: RabbitMQClient | null = null;
+  let redis: RedisClient | null = null;
+
   try {
     // Initialize RabbitMQ
-    const rabbitMQ = new RabbitMQClient(
+    rabbitMQ = new RabbitMQClient(
       process.env.RABBITMQ_URL || 'amqp://admin:admin@localhost:5672',
       'api-gateway'
     );
@@ -78,46 +81,49 @@ const startServer = async () => {
       exchangeType: 'direct',
       queues: [
         { name: 'email.queue', routingKey: 'email' },
-        { name: 'push.queue', routingKey: 'push' }
+        { name: 'push.queue', routingKey: 'push' },
+        { name: 'sms.queue', routingKey: 'sms' }
       ]
     });
+  } catch (error) {
+    logger.error('Failed to connect to RabbitMQ', error as Error);
+    rabbitMQ = null;
+  }
 
+  try {
     // Initialize Redis
-    const redis = new RedisClient(
+    redis = new RedisClient(
       process.env.REDIS_URL || 'redis://localhost:6379',
       'api-gateway'
     );
-
-    // Routes
-    app.use('/api/v1/notifications', createNotificationRoutes(rabbitMQ, redis));
-
-    // Error handler
-    app.use(errorHandler);
-
-    // 404 handler
-    app.use((req, res) => {
-      res.status(404).json(
-        ResponseBuilder.error('Not Found', 'The requested resource was not found')
-      );
-    });
-
-    app.listen(PORT, () => {
-      logger.info(`API Gateway is running on port ${PORT}`);
-      logger.info(`Health check available at http://localhost:${PORT}/health`);
-    });
+    await redis.connect();
   } catch (error) {
-    logger.error('Failed to start server', error as Error);
-    process.exit(1);
+    logger.error('Failed to connect to Redis', error as Error);
+    redis = null;
   }
+
+  // Routes - pass null if not connected
+  app.use('/api/notifications', createNotificationRoutes(rabbitMQ, redis));
+
+  // 404 handler
+  app.use('*', (req, res) => {
+    res.status(404).json(
+      ResponseBuilder.error('Not Found', 'The requested resource was not found')
+    );
+  });
+
+  // Error handler
+  app.use(errorHandler);
+
+  app.listen(PORT, () => {
+    logger.info(`API Gateway is running on port ${PORT}`);
+    logger.info(`Health check available at http://localhost:${PORT}/health`);
+  });
 };
 
-// startServer();
+startServer();
 
-// Basic server start
-app.listen(PORT, () => {
-  logger.info(`API Gateway is running on port ${PORT}`);
-  logger.info(`Health check available at http://localhost:${PORT}/health`);
-});
+// Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
   process.exit(0);
