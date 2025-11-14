@@ -60,8 +60,10 @@ app.get('/', (req, res) => {
     ResponseBuilder.success(
       {
         name: 'Distributed Notification System API',
-        version: '1.0.0',
-        documentation: '/api-docs'
+        version: '1.0.1',
+        build: 'railway-2024-11-14',
+        documentation: '/api-docs',
+        trustProxy: app.get('trust proxy')
       },
       'Welcome to the Notification System API'
     )
