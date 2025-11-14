@@ -1,0 +1,24 @@
+FROM node:20-alpine
+
+# Set work directory
+WORKDIR /app
+
+# Copy only the backend-stage4 sources needed for build
+COPY backend-stage4/package.json backend-stage4/pnpm-lock.yaml backend-stage4/pnpm-workspace.yaml backend-stage4/tsconfig.json ./backend-stage4/
+COPY backend-stage4/shared ./backend-stage4/shared
+COPY backend-stage4/services ./backend-stage4/services
+
+# Move into service directory
+WORKDIR /app/backend-stage4
+
+# Install pnpm and dependencies
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
+
+# Build TypeScript
+RUN pnpm build
+
+# Expose API Gateway port (Railway will map $PORT)
+EXPOSE 3000
+
+# Start API Gateway
+CMD ["node", "dist/services/api-gateway/src/index.js"]
