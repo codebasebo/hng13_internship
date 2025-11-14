@@ -103,7 +103,7 @@ const startServer = async () => {
       process.env.REDIS_URL || 'redis://localhost:6379',
       'api-gateway'
     );
-    await redis.connect();
+    // Note: RedisClient auto-connects on instantiation
   } catch (error) {
     logger.error('Failed to connect to Redis', error as Error);
     redis = null;

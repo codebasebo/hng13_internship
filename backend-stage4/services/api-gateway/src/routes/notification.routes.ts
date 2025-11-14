@@ -43,6 +43,13 @@ export const createNotificationRoutes = (
       const correlationId = (req as any).correlationId;
 
       try {
+        // Check infrastructure
+        if (!rabbitMQ || !redis) {
+          return res.status(503).json(
+            ResponseBuilder.error('Service Unavailable', 'RabbitMQ or Redis is not connected')
+          );
+        }
+
         // Check for idempotency
         const requestId = req.body.request_id || uuidv4();
         const idempotencyKey = `idempotency:${requestId}`;
@@ -115,6 +122,12 @@ export const createNotificationRoutes = (
       const correlationId = (req as any).correlationId;
 
       try {
+        if (!redis) {
+          return res.status(503).json(
+            ResponseBuilder.error('Service Unavailable', 'Redis is not connected')
+          );
+        }
+
         const requestId = req.params.request_id;
         const statusKey = `notification:status:${requestId}`;
         const status = await redis.get(statusKey);
@@ -153,6 +166,12 @@ export const createNotificationRoutes = (
       const correlationId = (req as any).correlationId;
 
       try {
+        if (!redis) {
+          return res.status(503).json(
+            ResponseBuilder.error('Service Unavailable', 'Redis is not connected')
+          );
+        }
+
         const statusUpdate = {
           notification_id: req.body.notification_id,
           status: req.body.status,
@@ -172,11 +191,13 @@ export const createNotificationRoutes = (
         res.json(
           ResponseBuilder.success(statusUpdate, 'Status updated successfully')
         );
+        return;
       } catch (error: any) {
         logger.error('Failed to update notification status', error, correlationId);
         res.status(500).json(
           ResponseBuilder.error('Internal Server Error', 'Failed to update status')
         );
+        return;
       }
     }
   );
