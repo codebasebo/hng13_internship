@@ -111,9 +111,13 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// startServer();
 
-// Graceful shutdown
+// Basic server start
+app.listen(PORT, () => {
+  logger.info(`API Gateway is running on port ${PORT}`);
+  logger.info(`Health check available at http://localhost:${PORT}/health`);
+});
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
   process.exit(0);
