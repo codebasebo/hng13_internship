@@ -6,15 +6,18 @@ WORKDIR /app
 # Install build dependencies for native modules (bcrypt, etc.)
 RUN apk add --no-cache python3 make g++
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
 
-# Install pnpm and dependencies
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
-
-# Copy source code
+# Copy source code (needed for workspace resolution)
 COPY shared ./shared
 COPY services ./services
+
+# Install dependencies and rebuild native modules
+RUN pnpm install --frozen-lockfile && pnpm rebuild bcrypt
 
 # Build TypeScript
 RUN pnpm build
