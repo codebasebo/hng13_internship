@@ -9,12 +9,13 @@ export const createTemplateRoutes = (templateService: TemplateService): Router =
   const router = Router();
 
   // Validation middleware
-  const validate = (req: Request, res: Response, next: Function) => {
+  const validate = (req: Request, res: Response, next: Function): void => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json(
+      res.status(400).json(
         ResponseBuilder.error('Validation failed', errors.array().map(e => e.msg).join(', '))
       );
+      return;
     }
     next();
   };

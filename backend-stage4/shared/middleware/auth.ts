@@ -14,14 +14,15 @@ export const authenticate = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-) => {
+): void => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      return res.status(401).json(
+      res.status(401).json(
         ResponseBuilder.error('Unauthorized', 'No token provided')
       );
+      return;
     }
 
     const secret = process.env.JWT_SECRET || 'your-secret-key';
@@ -34,8 +35,9 @@ export const authenticate = (
 
     next();
   } catch (error) {
-    return res.status(401).json(
+    res.status(401).json(
       ResponseBuilder.error('Unauthorized', 'Invalid or expired token')
     );
+    return;
   }
 };

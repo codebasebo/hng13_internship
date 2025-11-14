@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
 import { RabbitMQClient } from '../../../../shared/utils/rabbitmq';
@@ -15,12 +15,13 @@ export const createNotificationRoutes = (
   const router = Router();
   const logger = new Logger('notification-routes');
 
-  const validate = (req: Request, res: Response, next: Function) => {
+  const validate = (req: Request, res: Response, next: NextFunction): void => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json(
+      res.status(400).json(
         ResponseBuilder.error('Validation failed', errors.array().map(e => e.msg).join(', '))
       );
+      return;
     }
     next();
   };
@@ -93,11 +94,13 @@ export const createNotificationRoutes = (
             'Notification queued successfully'
           )
         );
+        return;
       } catch (error: any) {
         logger.error('Failed to queue notification', error, correlationId);
         res.status(500).json(
           ResponseBuilder.error('Internal Server Error', 'Failed to queue notification')
         );
+        return;
       }
     }
   );
@@ -125,11 +128,13 @@ export const createNotificationRoutes = (
         res.json(
           ResponseBuilder.success(status, 'Notification status retrieved successfully')
         );
+        return;
       } catch (error: any) {
         logger.error('Failed to get notification status', error, correlationId);
         res.status(500).json(
           ResponseBuilder.error('Internal Server Error', 'Failed to retrieve notification status')
         );
+        return;
       }
     }
   );

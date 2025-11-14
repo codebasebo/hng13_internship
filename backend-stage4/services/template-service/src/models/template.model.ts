@@ -1,5 +1,5 @@
 import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
-import { NotificationType } from '../../../../../shared/enums/notification.enum';
+import { NotificationType } from '../../../../shared/enums/notification.enum';
 
 export interface TemplateAttributes {
   id: string;
@@ -49,7 +49,7 @@ export const initTemplateModel = (sequelize: Sequelize) => {
         allowNull: false
       },
       type: {
-        type: DataTypes.ENUM(...Object.values(NotificationType)),
+        type: DataTypes.ENUM(...(Object.values(NotificationType) as string[])),
         allowNull: false
       },
       subject: {

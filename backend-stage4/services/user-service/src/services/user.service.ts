@@ -132,7 +132,7 @@ export class UserService {
         throw new AppError('Invalid credentials', 401);
       }
 
-      const token = jwt.sign(
+      const token = (jwt as any).sign(
         { id: user.id, email: user.email },
         process.env.JWT_SECRET || 'your-secret-key',
         { expiresIn: process.env.JWT_EXPIRY || '24h' }

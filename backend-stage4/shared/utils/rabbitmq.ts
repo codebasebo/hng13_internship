@@ -13,8 +13,8 @@ export interface QueueConfig {
 }
 
 export class RabbitMQClient {
-  private connection: Connection | null = null;
-  private channel: Channel | null = null;
+  private connection: any = null;
+  private channel: any = null;
   private logger: Logger;
   private url: string;
   private reconnectAttempts = 0;
