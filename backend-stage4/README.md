@@ -137,8 +137,14 @@ docker-compose logs -f
 
 ## 📖 API Documentation
 
-### Base URL
+### Base URLs
 
+**Production (Railway):**
+```
+https://hng13internship-production-a451.up.railway.app
+```
+
+**Local Development:**
 ```
 http://localhost:3000
 ```
@@ -250,8 +256,7 @@ Authorization: Bearer <token>
 
 **Send Notification**
 ```http
-POST /api/v1/notifications
-Authorization: Bearer <token>
+POST /api/notifications
 Content-Type: application/json
 
 {
@@ -269,10 +274,17 @@ Content-Type: application/json
 }
 ```
 
-**Get Notification Status**
-```http
-GET /api/v1/notifications/status/:request_id
-Authorization: Bearer <token>
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "request_id": "unique-request-id",
+    "status": "queued",
+    "message": "Notification has been queued for processing"
+  },
+  "message": "Notification queued successfully"
+}
 ```
 
 ### Response Format
@@ -381,7 +393,19 @@ docker-compose logs -f api-gateway
 
 ## 🚀 Deployment
 
-### Using Docker Compose
+### Live Production Deployment
+
+**URL:** https://hng13internship-production-a451.up.railway.app
+
+Deployed on Railway with:
+- ✅ Automatic deployments from `main` branch
+- ✅ PostgreSQL database
+- ✅ Redis cache
+- ✅ RabbitMQ message broker
+- ✅ Environment variables configured
+- ✅ Health monitoring enabled
+
+### Local Development with Docker Compose
 
 ```bash
 docker-compose up -d
@@ -389,21 +413,7 @@ docker-compose up -d
 
 ### CI/CD Pipeline
 
-The project includes a GitHub Actions workflow that:
-
-1. Runs tests
-2. Builds TypeScript
-3. Creates Docker images
-4. Pushes to Docker Hub
-5. Deploys to server
-
-Configure these secrets in GitHub:
-
-- `DOCKER_USERNAME`
-- `DOCKER_PASSWORD`
-- `SERVER_HOST`
-- `SERVER_USER`
-- `SSH_PRIVATE_KEY`
+The project includes automated GitHub Actions workflows for continuous integration and deployment.
 
 ## 📈 Performance Targets
 
