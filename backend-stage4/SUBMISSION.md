@@ -1,12 +1,12 @@
 # Stage 4 Submission Manifest
 
-Please fill the placeholders below before submitting to Airtable.
+## Submission Details
 
-- Group Number: **<REPLACE_WITH_GROUP_NUMBER>**
-- GitHub Repository URL: https://github.com/codebasebo/hng13_internship
-- API Gateway URL: https://hng13internship-production-a451.up.railway.app
-- System Design Diagram URL: https://github.com/codebasebo/hng13_internship/blob/main/backend-stage4/docs/SYSTEM_DESIGN.md
-- Demo Video URL: **<REPLACE_WITH_DEMO_VIDEO_URL>**
+- **Group Number**: [YOUR_GROUP_NUMBER_HERE]
+- **GitHub Repository URL**: https://github.com/codebasebo/hng13_internship
+- **API Gateway URL**: https://hng13internship-production-a451.up.railway.app
+- **System Design Diagram URL**: https://github.com/codebasebo/hng13_internship/blob/main/backend-stage4/SYSTEM_DESIGN.md
+- **Demo Video URL**: [YOUR_DEMO_VIDEO_URL_HERE]
 
 Notes:
 - The `SYSTEM_DESIGN.md` file contains a Mermaid diagram and an explanation. You can paste the GitHub URL above into Airtable.

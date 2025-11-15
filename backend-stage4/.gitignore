@@ -62,15 +62,26 @@ tmp/
 temp/
 *.tmp
 
-# Test scripts output
-test-railway-*.sh
+# Test scripts and temporary test files
+test-*.sh
+test-*.ts
+check-*.sh
+run-*.sh
+start-*.sh
+*-test-*.sh
 RAILWAY_TEST_*.md
+test-results/
+test-output/
 
-# Documentation (keep only README.md and SYSTEM_DESIGN.md)
-# All other .md files are ignored
-*.md
-!README.md
-!SYSTEM_DESIGN.md
+# Documentation files (keep only essential ones)
+EXECUTIVE_SUMMARY.md
+PRE_SUBMISSION_CHECKLIST.md
+RAILWAY_SETUP_GUIDE.md
+REQUIREMENTS_COMPLIANCE_REPORT.md
+SYSTEM_DESIGN.md
+QUICK_REFERENCE.md
+*_SETUP.md
+SERVICE_TEST_*.md
 
 # Deployment configs for unused platforms
 fly/
