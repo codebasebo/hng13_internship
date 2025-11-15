@@ -5,7 +5,7 @@ import { Logger } from '../../../../shared/utils/logger';
 const logger = new Logger('user-service-db');
 
 const sequelize = new Sequelize(
-  process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/user_service',
+  process.env.USER_SERVICE_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/user_service',
   {
     dialect: 'postgres',
     logging: (msg) => logger.debug(msg),

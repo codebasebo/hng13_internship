@@ -163,6 +163,12 @@ const startServer = async () => {
     logger.info('User Service routes initialized');
   } catch (error) {
     logger.error('Failed to initialize User Service', error as Error);
+    // Add fallback route for debugging
+    app.use('/api/v1/users', (req, res) => {
+      res.status(503).json(
+        ResponseBuilder.error('Service Unavailable', 'User Service is currently unavailable')
+      );
+    });
   }
 
   // Initialize Template Service
@@ -174,6 +180,12 @@ const startServer = async () => {
     logger.info('Template Service routes initialized');
   } catch (error) {
     logger.error('Failed to initialize Template Service', error as Error);
+    // Add fallback route for debugging
+    app.use('/api/v1/templates', (req, res) => {
+      res.status(503).json(
+        ResponseBuilder.error('Service Unavailable', 'Template Service is currently unavailable')
+      );
+    });
   }
 
   // Routes - pass null if not connected

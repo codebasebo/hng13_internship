@@ -5,7 +5,7 @@ import { Logger } from '../../../../shared/utils/logger';
 const logger = new Logger('template-service-db');
 
 const sequelize = new Sequelize(
-  process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/template_service',
+  process.env.TEMPLATE_SERVICE_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/template_service',
   {
     dialect: 'postgres',
     logging: (msg) => logger.debug(msg),
